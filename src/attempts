@@ -1,0 +1,302 @@
+--- 1 -- 
+#include <iostream>
+#include <vector>
+#include <cmath> 
+#include <Eigen/Dense>
+
+using Eigen::VectorXd;
+using Eigen::MatrixXd;
+
+struct TrainingData
+{
+    VectorXd input;
+    VectorXd output;
+    TrainingData()
+    {
+
+    }
+    TrainingData(int inputSize, int outputSize)
+    {
+        input = VectorXd::Constant(inputSize, 0);
+        output = VectorXd::Constant(outputSize, 0);
+    
+    }
+    void initSize(int inputSize, int outputSize)
+    {
+        input = VectorXd::Constant(inputSize, 0);
+        output = VectorXd::Constant(outputSize, 0);
+    }
+};
+
+int main()
+{
+    srand(time_t(nullptr));
+
+    VectorXd test = VectorXd::Constant(2, 0);
+    test.unaryExpr([](double x){return x+1;});
+    
+    std::cout << test << std::endl;
+    // 
+    
+    MatrixXd weightMat = MatrixXd::Random(1, 2);
+    VectorXd bias = VectorXd::Random(1);
+
+    std::cout << "weight : " << std::endl; std::cout << weightMat << std::endl;
+    std::cout << "bias : " << std::endl; std::cout << bias << std::endl;
+
+    std::vector<TrainingData> trainingList;
+    for(int i = 0; i < 4; i++)
+        trainingList.emplace_back().initSize(2, 1);
+    
+    trainingList[0].input << 0, 0;
+    trainingList[0].output << 0;
+
+    trainingList[1].input << 0, 1;
+    trainingList[1].output << 0;
+
+    trainingList[2].input << 1, 0;
+    trainingList[2].output << 0;
+
+    trainingList[3].input << 1, 1;
+    trainingList[3].output << 1;
+
+    // int index = 0;
+    // VectorXd output = weightMat*trainingList[index].input + bias;    
+    // output = output.unaryExpr([&](double x){return tanh(x); });
+
+    // std::cout << "output : " << std::endl; std::cout << output << std::endl;
+
+
+    // std::cout << "current weight : " << std::endl; std::cout << weightMat << std::endl;
+
+    // backward feed
+    // get the gradient of the function;
+    // VectorXd gradient = 2*(trainingList[index].output - output) / trainingList[index].output.size();
+        
+    // VectorXd activationGradient = gradient.unaryExpr([&](double x){return 1 - tanh(x)*tanh(x);});
+    // VectorXd deltaXGradient(activationGradient.size());
+
+    // for(int i = 0; i < activationGradient.size(); i++)
+    //     deltaXGradient(i) = gradient(i)*activationGradient(i);
+            
+    // weightMat += deltaXGradient*trainingList[index].input.transpose();
+    // bias += deltaXGradient;
+
+    // VectorXd modifiedOutput = weightMat*trainingList[index].input + bias;    
+    // modifiedOutput = modifiedOutput.unaryExpr([&](double x){return tanh(x); });
+
+    // std::cout << "modifiedOutput : " << std::endl; std::cout << modifiedOutput << std::endl;
+    
+    // forward feed
+    for(int i = 0; i < 200000; i++)
+    {
+        for(auto& data : trainingList)
+        {
+            VectorXd output = weightMat*data.input + bias;
+            output = output.unaryExpr([&](double x){return tanh(x);});
+            
+            // std::cout << "Output : " << std::endl; std::cout <<  output << std::endl;
+            // std::cout << "current weight : " << std::endl; std::cout << weightMat << std::endl;
+
+            // backward feed
+            // get the gradient of the function;
+            VectorXd gradient = 2*(data.output - output) / data.output.size();
+            
+            VectorXd activationGradient = gradient.unaryExpr([&](double x){return 1 - tanh(x)*tanh(x);});
+            VectorXd deltaXGradient(activationGradient.size());
+
+            for(int i = 0; i < activationGradient.size(); i++)
+                deltaXGradient(i) = gradient(i)*activationGradient(i);
+            
+            weightMat += 0.1*deltaXGradient*data.input.transpose();
+            bias += 0.1*deltaXGradient;
+        }        
+    }
+
+        
+    for(auto data : trainingList)
+    {
+        std::cout << "input : " << std::endl; std::cout << data.input << std::endl;
+        VectorXd predictionOutput = weightMat*data.input + bias;
+        predictionOutput = predictionOutput.unaryExpr([&](double x){return tanh(x);});
+
+
+        std::cout << "prediction : " << std::endl; std::cout << predictionOutput << std::endl;
+        std::cout << "true value : " << std::endl; std::cout << data.output << std::endl;
+    }
+    std::cout << "weight post : " << weightMat << std::endl;
+    std::cout << "bias post : " << bias << std::endl;
+
+
+    return 0;
+}
+
+-- 2 --
+#include <iostream>
+#include <Eigen/Dense>
+
+#include "Dense.hpp"
+
+using Eigen::VectorXd;
+using Eigen::MatrixXd;
+
+
+struct TrainingData
+{
+    VectorXd input;
+    VectorXd output;
+    TrainingData()
+    {
+
+    }
+    TrainingData(int inputSize, int outputSize)
+    {
+        input = VectorXd::Constant(inputSize, 0);
+        output = VectorXd::Constant(outputSize, 0);
+    
+    }
+    void initSize(int inputSize, int outputSize)
+    {
+        input = VectorXd::Constant(inputSize, 0);
+        output = VectorXd::Constant(outputSize, 0);
+    }
+};
+
+int main()
+{
+    Dense dense(2, 2);
+    
+    std::vector<TrainingData> trainingList;
+    for(int i = 0; i < 4; i++)
+        trainingList.emplace_back().initSize(2, 2);
+    
+    trainingList[0].input << 0, 0;
+    trainingList[0].output << 1, 1;
+
+    trainingList[1].input << 0, 1;
+    trainingList[1].output << 1, 0;
+
+    trainingList[2].input << 1, 0;
+    trainingList[2].output << 0, 1;
+
+    trainingList[3].input << 1, 1;
+    trainingList[3].output << 0, 0;
+    
+    for(int i = 0; i < 200000; i++)
+    {
+        for(auto& data : trainingList)
+        {
+            VectorXd currentOutput = dense.forwardFeed(data.input);
+            VectorXd gradient = 2*(data.output - currentOutput) / data.output.size();
+            dense.backwardFeed(gradient, 0.1);
+        }
+    }
+
+    for(auto data : trainingList)
+    {
+        std::cout << "input : " << std::endl; std::cout << data.input << std::endl;
+        dense.forwardFeed(data.input);
+        VectorXd predictionOutput = dense.forwardFeed(data.input);
+        std::cout << "prediction : " << std::endl; std::cout << predictionOutput << std::endl;
+        std::cout << "true value : " << std::endl; std::cout << data.output << std::endl;
+    }
+ 
+}
+-- 4--
+
+#include <iostream>
+#include <vector>
+#include <Eigen/Dense>
+
+using Eigen::VectorXd;
+using Eigen::MatrixXd;
+
+#include "Network.hpp"
+#include "VectorDisplayer.hpp"
+
+int main()
+{
+    std::vector<int> layerInfo = {2, 2};
+    std::vector<TrainingData> trainingList;
+    int sampleCount = 4;
+    
+    trainingList.reserve(sampleCount);
+    for(int i = 0; i < sampleCount; i++)
+        trainingList.emplace_back(layerInfo[0], layerInfo[layerInfo.size()-1]);
+
+    trainingList[0].input << 0, 0; trainingList[0].output << 1, 1;
+    trainingList[1].input << 0, 1; trainingList[1].output << 0, 0.5;
+    trainingList[2].input << 1, 0; trainingList[2].output << 0.3, 0.123;
+    trainingList[3].input << 1, 1; trainingList[3].output << 0.172, 0.172;
+
+    Network xorNetwork(layerInfo);
+    xorNetwork.trainNetworkWithInfo(trainingList, 0.1, 10000);
+    // std::vector<std::vector<NetworkInfo>> currentInfo = xorNetwork.trainNetworkWithInfo(trainingList, 0.1, 1000);
+    
+    for(auto& sample : trainingList)
+    {
+        auto prediction = xorNetwork.forwardPropagation(sample.input);
+        std::cout << "prediction : " << std::endl; std::cout << prediction << std::endl;
+        std::cout << "truth value : " << std::endl; std::cout << sample.output << std::endl;
+    }
+
+    // sf::RenderWindow window(sf::VideoMode(1000, 500), "title");
+    // window.setVerticalSyncEnabled(true);
+    // sf::Vector2u windowSize = window.getSize();
+
+    // sf::Font font;
+    // font.loadFromFile("rsrc/font.ttf");
+
+    // VectorDisplayer displayer(font);
+
+    // int epoch = 0;
+    // sf::Text epochText;
+    // epochText.setFont(font);
+    // epochText.setString("Epoch:" + std::to_string(epoch));    
+    // // why specifically 25.172? its kinda cool i donno
+    // epochText.setPosition(windowSize.x - epochText.getGlobalBounds().width - 2*25.172f, 0.f);
+
+    // sf::Event event; 
+    // int pressTimer = 0;
+    // while(window.isOpen())
+    // {
+    //     while(window.pollEvent(event))
+    //     {
+    //         if(event.type == sf::Event::Closed)
+    //             window.close();
+    //     }
+    //     epochText.setString("Epoch:" + std::to_string(epoch));    
+    //     if(sf::Keyboard::isKeyPressed(sf::Keyboard::A) && epoch != 0)
+    //     {
+    //         epoch -= 1;
+    //         epochText.setString("Epoch:" + std::to_string(epoch));
+    //     }
+
+    //     if(sf::Keyboard::isKeyPressed(sf::Keyboard::D) && epoch != currentInfo.size()-1)
+    //     {
+    //         epoch += 1;
+    //         epochText.setString("Epoch:" + std::to_string(epoch));    
+    //     }
+    //     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && pressTimer == 0)
+    //     {
+    //         for(auto& sample : trainingList)
+    //         {
+    //             auto prediction = xorNetwork.forwardPropagation(sample.input);
+    //             std::cout << "prediction : " << std::endl; std::cout << prediction << std::endl;
+    //             std::cout << "truth value : " << std::endl; std::cout << sample.output << std::endl;
+    //         }
+    //         pressTimer = 10;
+    //     }
+
+    //     displayer.setText(currentInfo[epoch][0], sf::Vector2f(windowSize.x/4, 40.f), trainingList);
+        
+    //     if(pressTimer > 0)
+    //         pressTimer--;        
+    //     window.clear();
+    //     displayer.drawTo(window);
+    //     window.draw(epochText);
+    //     window.display();
+    // }
+    return 0;
+}
+

@@ -1,0 +1,3 @@
+TO do list
+
+Recheck the dense and network layer algorithm again...
